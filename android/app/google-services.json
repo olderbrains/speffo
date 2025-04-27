@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "852886262776",
+    "project_id": "speffo",
+    "storage_bucket": "speffo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:852886262776:android:b9877346b39f65dd52bc0d",
+        "android_client_info": {
+          "package_name": "com.olderbrains.speffo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCqLBLdIzAZZwictImiCO_zNjAYwRUu0bw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
