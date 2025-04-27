@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 ThemeData globalTheme() {
   return ThemeData(
-
-    fontFamily: 'NotoSans',
+    useMaterial3: false,
+    colorScheme: ColorScheme.light(primary: Color(0xff2fa85a)),
+    fontFamily: 'Poppins',
     textTheme: const TextTheme(
       displayLarge: TextStyle(fontWeight: FontWeight.w900),
       displayMedium: TextStyle(fontWeight: FontWeight.w800),

@@ -3,7 +3,6 @@ part of 'login_bloc.dart';
 @immutable
 sealed class LoginState {}
 
-final class LoginInitial extends LoginState {}
 
 final class UnauthorizedState extends LoginState {
   final String? error;
@@ -26,6 +25,11 @@ final class VerifyOTPFailed extends LoginState {
 
   VerifyOTPFailed({required this.error});
 }
+
+final class LoginInitial extends LoginState {}
+
+final class LoginLoading extends LoginState {}
+final class OTPVerificationLoading extends LoginState {}
 
 final class LoginSuccess extends LoginState {}
 

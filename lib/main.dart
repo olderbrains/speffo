@@ -20,6 +20,7 @@ Future<void> main() async {
       designSize: const Size(393, 852),
       child: MaterialApp(
         theme: globalTheme(),
+
         home: Scaffold(body: SpeffoApp()),
       ),
     ),
@@ -51,9 +52,16 @@ class _SpeffoAppState extends State<SpeffoApp>
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create:
-          (context) => AuthenticationBloc()..add(CheckAuthenticationEvent()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create:
+              (context) =>
+          AuthenticationBloc()
+            ..add(CheckAuthenticationEvent()),
+        ),
+
+      ],
       child: BlocListener<AuthenticationBloc, AuthenticationState>(
         listener: (context, state) {
           if (state is Authenticated) {
@@ -62,7 +70,7 @@ class _SpeffoAppState extends State<SpeffoApp>
             PageRouter.pushRemoveUntil(context, LoginMainView());
           }
         },
-        child: Center( 
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,

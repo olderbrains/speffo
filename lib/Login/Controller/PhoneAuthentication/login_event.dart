@@ -7,13 +7,15 @@ sealed class LoginEvent {
 
 class SendOTPEvent extends LoginEvent{
   final String phoneNumber;
-  final String sendOTPTemplateID;
 
-  SendOTPEvent({required this.phoneNumber,required this.sendOTPTemplateID});
+  SendOTPEvent({required this.phoneNumber});
 }
 class VerifyPhoneOTPEvent extends LoginEvent{
   final String phoneNumber;
   final String otp;
 
   VerifyPhoneOTPEvent({required this.phoneNumber,required this.otp});
+}
+class ResetLogin extends LoginEvent{
+
 }
