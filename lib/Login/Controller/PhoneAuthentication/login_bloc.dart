@@ -4,20 +4,22 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 import 'package:http/http.dart' as http;
+import 'package:speffo/Helper/api_url.dart';
 import 'package:speffo/Login/Model/PhoneAuthentication/otp_success_model.dart';
 part 'login_event.dart';
 part 'login_state.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
-  LoginBloc() : super(LoginInitial()) {
+  LoginBloc() : super(LoginAuthInitial()) {
     on<SendOTPEvent>((event, emit) async {
       try {
-        emit(LoginLoading());
+        emit(AuthLoading());
         Response response = await http.get(
           Uri.parse(
-            'https://control.msg91.com/api/v5/otp?otp_expiry=5&template_id=${dotenv.env['sendOTPTemplateID']}&mobile=+91${event.phoneNumber}&authkey=${dotenv.env['msg91AuthKey']}&realTimeResponse=1',
+            '${ApiURl.sentOTPUrl}otp_expiry=5&template_id=${dotenv.env['SEND_OTP_TEMPLATE_ID']}&mobile=+91${event.phoneNumber}&authkey=${dotenv.env['MSG91_KEY']}&realTimeResponse=1',
           ),
         );
+
         if (response.statusCode == 200) {
           OTPResponseModel ref = OTPResponseModel.fromJson(
             jsonDecode(response.body),
@@ -35,51 +37,38 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           );
         }
       } catch (e) {
-        emit(UnauthorizedState(error: "Unknown Error : ${e.toString()}"));
+        emit(LoginAuthReject());
       }
     });
 
     on<VerifyPhoneOTPEvent>((event, emit) async {
-      emit(OTPVerificationLoading());
+      emit(AuthLoading());
       try {
         Response response = await http.get(
-          headers: {'authkey': '${dotenv.env['msg91AuthKey']}'},
+          headers: {'authkey': '${dotenv.env['MSG91_KEY']}'},
           Uri.parse(
-            'https://control.msg91.com/api/v5/otp/verify?otp=${event.otp}&mobile=+91${event.phoneNumber}',
+            '${ApiURl.verifyOTPUrl}otp=${event.otp}&mobile=+91${event.phoneNumber}',
           ),
         );
+
         if (response.statusCode == 200) {
           OTPResponseModel ref = OTPResponseModel.fromJson(
             jsonDecode(response.body),
           );
-          if (ref.message != null &&
-              ref.message == 'OTP verified success') {
-            emit(LoginSuccess());
-          } else if (ref.message != null && ref.message == 'OTP expired') {
-            emit(VerifyOTPFailed(error: 'OTP Expired'));
-            emit(LoginReject());
+          if (ref.message != null && ref.message == 'OTP verified success') {
+            emit(LoginAuthSuccess());
           } else {
-            emit(VerifyOTPFailed(error: ref.message));
-            emit(LoginReject());
+            emit(LoginAuthReject());
           }
         } else {
-          emit(LoginReject());
-
-          emit(
-            VerifyOTPFailed(
-              error:
-                  "Failed to Verify OTP. Status code: ${response.statusCode}",
-            ),
-          );
+          emit(LoginAuthReject());
         }
       } catch (e) {
-        emit(LoginReject());
-
-        emit(UnauthorizedState(error: "Unknown Error : ${e.toString()}"));
+        emit(LoginAuthReject());
       }
     });
     on<ResetLogin>((event, emit) async {
-      emit(LoginInitial());
+      emit(LoginAuthInitial());
     });
   }
 }

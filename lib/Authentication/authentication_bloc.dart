@@ -1,4 +1,6 @@
 import 'dart:async';
+
+import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -14,36 +16,21 @@ class AuthenticationBloc
     : _auth = auth ?? FirebaseAuth.instance,
       super(AuthenticationLoading()) {
     _authSubscription = _auth.authStateChanges().listen((user) {
-      add(CheckAuthenticationEvent());
+      add(AuthUserChanged(user));
     });
 
-    on<CheckAuthenticationEvent>((event, emit) async {
-      try {
-        emit(AuthenticationLoading());
-        final user = _auth.currentUser;
-
-        if (user != null) {
-          emit(Authenticated(user: user));
-        } else {
-          emit(
-            UnAuthenticated(message: 'No User Found'),
-          );
-        }
-      } catch (e) {
-        emit(UnAuthenticated(message: 'Failed to check authentication status'));
+    on<AuthUserChanged>((event, emit) {
+      if (event.user != null) {
+        emit(Authenticated(user: event.user!));
+      } else {
+        emit(UnAuthenticated());
       }
     });
 
-    on<SignOutUser>((event, emit) async {
-      try {
-        emit(AuthenticationLoading());
-        await _auth.signOut();
-        emit(UnAuthenticated(message: "SignOut Successfully"));
-      } catch (e) {
-        emit(UnAuthenticated(message: 'Failed to sign out'));
-        // Optionally re-emit the current state
-        add(CheckAuthenticationEvent());
-      }
+    on<SignOutRequested>((event, emit) async {
+      emit(AuthenticationLoading());
+      await _auth.signOut();
+      // Auth state change will trigger automatically
     });
   }
 

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:pinput/pinput.dart';
 import 'package:speffo/Helper/indicator.dart';
 import 'package:speffo/Helper/page_router.dart';
-import 'package:speffo/Home/nav_home.dart';
 import 'package:speffo/Login/Controller/PhoneAuthentication/login_bloc.dart';
+import 'package:speffo/Login/View/PhoneAuthentication/phone_verify_otp_screen.dart';
+import 'package:speffo/Widgets/alerts.dart';
 
 class LoginMainView extends StatefulWidget {
   const LoginMainView({super.key});
@@ -16,17 +16,15 @@ class LoginMainView extends StatefulWidget {
 
 class _LoginMainViewState extends State<LoginMainView> {
   var phoneController = TextEditingController();
-  var otpController = TextEditingController();
-  var otpFocus = FocusNode();
+
   var phoneNumberFocus = FocusNode();
   GlobalKey<FormState> phoneValidateKey = GlobalKey<FormState>();
+
   @override
   void dispose() {
     super.dispose();
     phoneController.dispose();
-    otpController.dispose();
     phoneNumberFocus.dispose();
-    otpFocus.dispose();
   }
 
   @override
@@ -35,6 +33,7 @@ class _LoginMainViewState extends State<LoginMainView> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
+        toolbarHeight: 75.h,
         title: Text(
           'Login or sign up',
           style: TextStyle(
@@ -121,206 +120,51 @@ class _LoginMainViewState extends State<LoginMainView> {
                 ),
                 SizedBox(
                   width: double.infinity,
-                  child: BlocListener<LoginBloc, LoginState>(
+                  child: BlocConsumer<LoginBloc, LoginState>(
+                    builder:
+                        (context, loginRef) =>
+                            loginRef is AuthLoading
+                                ? Indicators()
+                                : ElevatedButton(
+                                  onPressed: () {
+                                    if (phoneValidateKey.currentState!
+                                        .validate()) {
+                                      if (phoneNumberFocus.hasFocus) {
+                                        phoneNumberFocus.unfocus();
+                                      }
+
+                                      context.read<LoginBloc>().add(
+                                        SendOTPEvent(
+                                          phoneNumber:
+                                              phoneController.value.text
+                                                  .toString(),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: 14.h,
+                                    ),
+                                  ),
+                                  child: const Text('Continue'),
+                                ),
                     listener: (context, loginListenerRef) {
                       if (loginListenerRef is OTPSentSuccess) {
-                        showModalBottomSheet(
-                          isDismissible: false,
-                          enableDrag: false,
-                          isScrollControlled: true,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(15.r),
-                              topRight: Radius.circular(15.r),
-                            ),
+                        PageRouter.push(
+                          context,
+                          PhoneVerifyOtpScreen(
+                            phoneNumber: phoneController.value.text,
                           ),
-                          context: context,
-                          builder: (context) {
-                            return BlocProvider(
-                              create: (context) => LoginBloc(),
-                              child: BlocListener<LoginBloc, LoginState>(
-                                listener: (context, state) {
-                                  if (state is LoginSuccess) {
-                                    PageRouter.pushRemoveUntil(
-                                      context,
-                                      NavHome(),
-                                    );
-                                  }
-                                },
-                                child: BlocBuilder<LoginBloc, LoginState>(
-                                  builder: (context, otpRef) {
-                                    return SingleChildScrollView(
-                                      // Wrap with this
-                                      padding: EdgeInsets.only(
-                                        bottom:
-                                            MediaQuery.of(
-                                              context,
-                                            ).viewInsets.bottom,
-                                      ),
-                                      child: Padding(
-                                        padding: EdgeInsets.symmetric(
-                                          vertical: 15.h,
-                                          horizontal: 15.w,
-                                        ),
-                                        child: Column(
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Expanded(
-                                                  child: Align(
-                                                    alignment: Alignment.center,
-                                                    child: Text(
-                                                      'Verify Your Number',
-                                                      style: TextStyle(
-                                                        fontSize: 18.sp,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                IconButton(
-                                                  onPressed: () {
-                                                    if (otpFocus.hasFocus) {
-                                                      otpFocus.unfocus();
-                                                    }
-                                                    Navigator.pop(context);
-                                                    otpController.clear();
-                                                    phoneController.clear();
-                                                    context
-                                                        .read<LoginBloc>()
-                                                        .add(ResetLogin());
-                                                  },
-                                                  icon: Icon(Icons.close),
-                                                ),
-                                              ],
-                                            ),
-                                            Divider(),
-                                            Row(
-                                              children: [
-                                                Text(
-                                                  'Enter the code we\'ve sent by SMS to',
-                                                ),
-                                              ],
-                                            ),
-                                            Padding(
-                                              padding: EdgeInsets.symmetric(
-                                                vertical: 8.h,
-                                              ),
-                                              child: Row(
-                                                children: [
-                                                  Text(
-                                                    phoneController.value.text,
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding: EdgeInsets.symmetric(
-                                                vertical: 15.h,
-                                              ),
-                                              child: Pinput(
-                                                controller: otpController,
-                                                autofocus: true,
-                                                focusNode: otpFocus,
-                                                keyboardType:
-                                                    TextInputType.number,
-                                                onCompleted: (value) {
-                                                  context.read<LoginBloc>().add(
-                                                    VerifyPhoneOTPEvent(
-                                                      phoneNumber:
-                                                          phoneController
-                                                              .value
-                                                              .text
-                                                              .toString(),
-                                                      otp:
-                                                          otpController
-                                                              .value
-                                                              .text
-                                                              .toString(),
-                                                    ),
-                                                  );
-                                                },
-                                                length: 4,
-                                                validator: (value) {
-                                                  if (value!.length != 4) {
-                                                    return 'OTP required';
-                                                  }
-                                                  return null;
-                                                },
-                                              ),
-                                            ),
-                                            otpRef is OTPVerificationLoading
-                                                ? Padding(
-                                                  padding: EdgeInsets.symmetric(
-                                                    vertical: 15.h,
-                                                  ),
-                                                  child: Indicators(),
-                                                )
-                                                : Row(
-                                                  children: [
-                                                    Text(
-                                                      'Haven\'t received OTP? ',
-                                                    ),
-                                                    TextButton(
-                                                      onPressed: () {},
-                                                      child: Text(
-                                                        'Resend OTP',
-                                                        style: TextStyle(
-                                                          decoration:
-                                                              TextDecoration
-                                                                  .underline,
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            );
-                          },
                         );
-                      } else if (loginListenerRef is VerifyOTPFailed ||
-                          loginListenerRef is LoginReject) {
-                        print('failed');
+                      } else if (loginListenerRef is OTPSentFailed) {
+                        FlashAlert.show(
+                          context,
+                          "OTP sent failed please try again",
+                          type: FlashAlertType.warning,
+                        );
                       }
                     },
-                    child: BlocBuilder<LoginBloc, LoginState>(
-                      builder: (context, loginRef) {
-                        return loginRef is LoginLoading
-                            ? Indicators()
-                            : ElevatedButton(
-                              onPressed: () {
-                                if (phoneValidateKey.currentState!.validate()) {
-                                  if (phoneNumberFocus.hasFocus) {
-                                    phoneNumberFocus.unfocus();
-                                  }
-
-                                  context.read<LoginBloc>().add(
-                                    SendOTPEvent(
-                                      phoneNumber:
-                                          phoneController.value.text.toString(),
-                                    ),
-                                  );
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                padding: EdgeInsets.symmetric(vertical: 14.h),
-                              ),
-                              child: const Text('Continue'),
-                            );
-                      },
-                    ),
                   ),
                 ),
                 SizedBox(height: 20.h),

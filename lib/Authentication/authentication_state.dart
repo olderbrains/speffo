@@ -1,17 +1,19 @@
 part of 'authentication_bloc.dart';
 
-sealed class AuthenticationState {}
-
-final class AuthenticationLoading extends AuthenticationState {}
-
-final class Authenticated extends AuthenticationState {
- final User user;
-
-  Authenticated({required this.user});
+abstract class AuthenticationState extends Equatable {
+  const AuthenticationState();
+  @override
+  List<Object?> get props => [];
 }
 
-final class UnAuthenticated extends AuthenticationState {
-  final String message;
+class AuthenticationLoading extends AuthenticationState {}
 
-  UnAuthenticated({required this.message});
+class Authenticated extends AuthenticationState {
+  final User user;
+  const Authenticated({required this.user});
+
+  @override
+  List<Object?> get props => [user];
 }
+
+class UnAuthenticated extends AuthenticationState {}
