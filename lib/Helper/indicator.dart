@@ -11,17 +11,10 @@ class Indicators extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (Platform.isIOS) {
-      return CupertinoActivityIndicator(
-        color: color,
-
-        radius: size ?? 10,
-      );
+      return CupertinoActivityIndicator(color: color, radius: size ?? 10);
     } else {
       return Center(
-        child: CircularProgressIndicator(
-          color: color,
-          strokeWidth: size ?? 1,
-        ),
+        child: CircularProgressIndicator(color: color, strokeWidth: size ?? 1),
       );
     }
   }

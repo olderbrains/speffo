@@ -33,27 +33,13 @@ class MyApp extends StatelessWidget {
           BlocProvider(create: (_) => AuthenticationBloc()),
           BlocProvider(create: (context) => LoginBloc()),
         ],
-        child: MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: globalTheme(),
-          builder: (context, child) {
-            return BlocListener<AuthenticationBloc, AuthenticationState>(
-              listenWhen:
-                  (previous, current) =>
-                      previous is Authenticated && current is UnAuthenticated,
-              listener: (context, state) {
-                if (state is UnAuthenticated) {
-                  Navigator.of(
-                    context,
-                    rootNavigator: true,
-                  ).popUntil((route) => route.isFirst);
-                  PageRouter.pushRemoveUntil(context, const LoginMainView());
-                }
-              },
-              child: child!,
-            );
+        child: BlocListener<AuthenticationBloc, AuthenticationState>(
+          listener: (context, state) {
+            if (state is UnAuthenticated) {
+              print('object');
+            }
           },
-          home: const SplashScreen(),
+          child: MaterialApp(theme: globalTheme(), home: const SplashScreen()),
         ),
       ),
     );
@@ -79,7 +65,9 @@ class _SplashScreenState extends State<SplashScreen>
     Future.delayed(const Duration(seconds: 3), () {
       if (!mounted) return;
 
-      final authState = context.read<AuthenticationBloc>().state;
+      final authState = context
+          .read<AuthenticationBloc>()
+          .state;
 
       if (authState is Authenticated) {
         PageRouter.pushRemoveUntil(context, const NavHome());

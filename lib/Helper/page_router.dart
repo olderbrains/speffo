@@ -16,11 +16,14 @@ class PageRouter {
   }
 
   static _navigate(
-      BuildContext context, Widget className, NavigationType type) {
+    BuildContext context,
+    Widget className,
+    NavigationType type,
+  ) {
     routeBuilder(BuildContext context) => className;
 
     final platform =
-    Platform.isAndroid ? PlatformType.android : PlatformType.ios;
+        Platform.isAndroid ? PlatformType.android : PlatformType.ios;
 
     final pageRoute = switch (platform) {
       PlatformType.android => MaterialPageRoute(builder: routeBuilder),

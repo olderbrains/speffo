@@ -3,13 +3,21 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pinput/pinput.dart';
 import 'package:speffo/Helper/api_url.dart';
+import 'package:speffo/Helper/indicator.dart';
+import 'package:speffo/Helper/page_router.dart';
+import 'package:speffo/Home/nav_home.dart';
 import 'package:speffo/Login/Controller/PhoneAuthentication/login_bloc.dart';
 import 'package:speffo/Widgets/alerts.dart';
 
 class PhoneVerifyOtpScreen extends StatefulWidget {
   final String phoneNumber;
+  final String countryCode;
 
-  const PhoneVerifyOtpScreen({super.key, required this.phoneNumber});
+  const PhoneVerifyOtpScreen({
+    super.key,
+    required this.phoneNumber,
+    required this.countryCode,
+  });
 
   @override
   State<PhoneVerifyOtpScreen> createState() => _PhoneVerifyOtpScreenState();
@@ -55,7 +63,7 @@ class _PhoneVerifyOtpScreenState extends State<PhoneVerifyOtpScreen> {
                     children: [
                       Row(
                         children: [
-                          Text('Enter the code we\'ve sent by SMS to'),
+                          Expanded(child: Text('Enter the code we\'ve sent by SMS to',style: TextStyle(fontSize: 18.sp),)),
                         ],
                       ),
                       Padding(
@@ -63,8 +71,9 @@ class _PhoneVerifyOtpScreenState extends State<PhoneVerifyOtpScreen> {
                         child: Row(
                           children: [
                             Text(
+                              widget.countryCode +
                               widget.phoneNumber,
-                              style: TextStyle(fontWeight: FontWeight.w500),
+                              style: TextStyle(fontWeight: FontWeight.w500,fontSize: 15.sp),
                             ),
                           ],
                         ),
@@ -80,6 +89,7 @@ class _PhoneVerifyOtpScreenState extends State<PhoneVerifyOtpScreen> {
                             context.read<LoginBloc>().add(
                               VerifyPhoneOTPEvent(
                                 phoneNumber: widget.phoneNumber,
+                                countryCode: widget.countryCode,
                                 otp: value,
                               ),
                             );
@@ -110,22 +120,23 @@ class _PhoneVerifyOtpScreenState extends State<PhoneVerifyOtpScreen> {
                           ),
                         ],
                       ),
+                      state is AuthLoading ? Indicators() : SizedBox.shrink()
                     ],
                   ),
                   Column(
                     children: [
                       Image.asset('assets/logo/logo.png', height: 50.h),
                       Text(
-                        '© 2025 All Rights Reserved By ${Constants.appName}',
+                        '© All Rights Reserved By ${Constants.appName}',
                       ),
                     ],
                   ),
                 ],
               ),
             ),
-        listener: (context, state) {
+        listener: (context, state) async {
           if (state is LoginAuthSuccess) {
-
+            PageRouter.pushRemoveUntil(context, NavHome());
           } else if (state is LoginAuthReject) {
             FlashAlert.show(
               context,

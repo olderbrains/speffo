@@ -1,6 +1,8 @@
+import 'package:fl_country_code_picker/fl_country_code_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:speffo/Helper/api_url.dart';
 import 'package:speffo/Helper/indicator.dart';
 import 'package:speffo/Helper/page_router.dart';
 import 'package:speffo/Login/Controller/PhoneAuthentication/login_bloc.dart';
@@ -19,21 +21,28 @@ class _LoginMainViewState extends State<LoginMainView> {
 
   var phoneNumberFocus = FocusNode();
   GlobalKey<FormState> phoneValidateKey = GlobalKey<FormState>();
+  final countryPicker = FlCountryCodePicker(favorites: ['+91', 'IN']);
+
+  var countryListener = ValueNotifier("India (+91)");
+
+  CountryCode? countryCode;
 
   @override
   void dispose() {
     super.dispose();
     phoneController.dispose();
+    countryListener.dispose();
     phoneNumberFocus.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
-        toolbarHeight: 75.h,
+        toolbarHeight: 50.h,
         title: Text(
           'Login or sign up',
           style: TextStyle(
@@ -51,6 +60,25 @@ class _LoginMainViewState extends State<LoginMainView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.h),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Welcome to ',
+                        style: TextStyle(
+                          fontSize: 18.sp,
+                        ),
+                      ), Text(
+                        Constants.appName,
+                        style: TextStyle(
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: 12.w,
@@ -62,32 +90,62 @@ class _LoginMainViewState extends State<LoginMainView> {
                   ),
                   child: Column(
                     children: [
-                      Row(
-                        children: [
-                          Text(
-                            'Country/Region',
-                            style: TextStyle(
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w300,
+                      GestureDetector(
+                        onTap: () async {
+                          countryCode = await countryPicker.showPicker(
+                            context: context,
+                            pickerMaxHeight:
+                                MediaQuery.of(context).size.height / 1.2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.only(
+                                topRight: Radius.circular(15.r),
+                                topLeft: Radius.circular(15.r),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'India (+91)',
-                            style: TextStyle(fontWeight: FontWeight.w500),
-                          ),
-                          Icon(Icons.arrow_drop_down),
-                        ],
+                          );
+                          if (countryCode != null) {
+                            countryListener.value =
+                                '${countryCode!.name} (${countryCode!.dialCode})';
+                          }
+                        },
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  'Country/Region',
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w300,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                ValueListenableBuilder(
+                                  valueListenable: countryListener,
+                                  builder:
+                                      (context, value, child) => Text(
+                                        value,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                ),
+                                Icon(Icons.arrow_drop_down),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                       Divider(thickness: 1, color: Colors.black45),
                       Form(
                         key: phoneValidateKey,
                         child: TextFormField(
                           controller: phoneController,
+                          textInputAction: TextInputAction.done,
                           focusNode: phoneNumberFocus,
                           validator: (value) {
                             if (value!.length != 10) {
@@ -138,6 +196,8 @@ class _LoginMainViewState extends State<LoginMainView> {
                                           phoneNumber:
                                               phoneController.value.text
                                                   .toString(),
+                                          countryCode:
+                                              countryCode?.code ?? '+91',
                                         ),
                                       );
                                     }
@@ -155,6 +215,7 @@ class _LoginMainViewState extends State<LoginMainView> {
                           context,
                           PhoneVerifyOtpScreen(
                             phoneNumber: phoneController.value.text,
+                            countryCode: '+91',
                           ),
                         );
                       } else if (loginListenerRef is OTPSentFailed) {
@@ -186,12 +247,13 @@ class _LoginMainViewState extends State<LoginMainView> {
                 ),
                 SizedBox(height: 20.h),
                 _buildSocialButton('Continue with email', Icons.email),
-                const SizedBox(height: 12),
+                SizedBox(height: 12.h),
                 _buildSocialButton('Continue with Apple', Icons.apple),
-                const SizedBox(height: 12),
+                SizedBox(height: 12.h),
                 _buildSocialButton('Continue with Google', Icons.gpp_maybe),
-                const SizedBox(height: 12),
+                SizedBox(height: 12.h),
                 _buildSocialButton('Continue with Facebook', Icons.facebook),
+                SizedBox(height: 25.h),
               ],
             ),
           ),
@@ -202,7 +264,9 @@ class _LoginMainViewState extends State<LoginMainView> {
 
   Widget _buildSocialButton(String text, IconData icon) {
     return OutlinedButton(
-      onPressed: () {},
+      onPressed: () {
+        phoneNumberFocus.unfocus();
+      },
       style: OutlinedButton.styleFrom(
         padding: EdgeInsets.symmetric(vertical: 13.h),
         side: const BorderSide(color: Colors.black87),

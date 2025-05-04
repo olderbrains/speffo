@@ -17,4 +17,8 @@ final class AuthLoading extends LoginState {}
 
 final class LoginAuthSuccess extends LoginState {}
 
-final class LoginAuthReject extends LoginState {}
+final class LoginAuthReject extends LoginState {
+  final String message;
+
+  LoginAuthReject({required this.message});
+}
