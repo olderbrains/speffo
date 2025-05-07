@@ -63,7 +63,12 @@ class _PhoneVerifyOtpScreenState extends State<PhoneVerifyOtpScreen> {
                     children: [
                       Row(
                         children: [
-                          Expanded(child: Text('Enter the code we\'ve sent by SMS to',style: TextStyle(fontSize: 18.sp),)),
+                          Expanded(
+                            child: Text(
+                              'Enter the code we\'ve sent by SMS to',
+                              style: TextStyle(fontSize: 18.sp),
+                            ),
+                          ),
                         ],
                       ),
                       Padding(
@@ -71,9 +76,11 @@ class _PhoneVerifyOtpScreenState extends State<PhoneVerifyOtpScreen> {
                         child: Row(
                           children: [
                             Text(
-                              widget.countryCode +
-                              widget.phoneNumber,
-                              style: TextStyle(fontWeight: FontWeight.w500,fontSize: 15.sp),
+                              widget.countryCode + widget.phoneNumber,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 15.sp,
+                              ),
                             ),
                           ],
                         ),
@@ -120,15 +127,13 @@ class _PhoneVerifyOtpScreenState extends State<PhoneVerifyOtpScreen> {
                           ),
                         ],
                       ),
-                      state is AuthLoading ? Indicators() : SizedBox.shrink()
+                      state is AuthLoading ? Indicators() : SizedBox.shrink(),
                     ],
                   ),
                   Column(
                     children: [
                       Image.asset('assets/logo/logo.png', height: 50.h),
-                      Text(
-                        '© All Rights Reserved By ${Constants.appName}',
-                      ),
+                      Text('© All Rights Reserved By ${Constants.appName}'),
                     ],
                   ),
                 ],
@@ -139,8 +144,7 @@ class _PhoneVerifyOtpScreenState extends State<PhoneVerifyOtpScreen> {
             PageRouter.pushRemoveUntil(context, NavHome());
           } else if (state is LoginAuthReject) {
             FlashAlert.show(
-              context,
-              "OTP verification failed or expired",
+              message: "Entered OTP is invalid or may expired",
               type: FlashAlertType.error,
             );
           }

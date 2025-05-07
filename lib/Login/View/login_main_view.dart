@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:fl_country_code_picker/fl_country_code_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -63,27 +65,21 @@ class _LoginMainViewState extends State<LoginMainView> {
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 8.h),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      Text('Welcome to ', style: TextStyle(fontSize: 18.sp)),
                       Text(
-                        'Welcome to ',
-                        style: TextStyle(
-                          fontSize: 18.sp,
-                        ),
-                      ), Text(
                         Constants.appName,
                         style: TextStyle(
                           fontSize: 18.sp,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 12.w,
-                    vertical: 5.h,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 12.w),
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.black45),
                     borderRadius: BorderRadius.circular(8.r),
@@ -220,8 +216,7 @@ class _LoginMainViewState extends State<LoginMainView> {
                         );
                       } else if (loginListenerRef is OTPSentFailed) {
                         FlashAlert.show(
-                          context,
-                          "OTP sent failed please try again",
+                          message: "OTP sent failed please try again",
                           type: FlashAlertType.warning,
                         );
                       }
@@ -246,14 +241,53 @@ class _LoginMainViewState extends State<LoginMainView> {
                   ],
                 ),
                 SizedBox(height: 20.h),
-                _buildSocialButton('Continue with email', Icons.email),
+
+                Platform.isAndroid
+                    ? _buildSocialButton(
+                      text: 'Continue with Apple',
+                      icon: Icons.apple,
+                      onPressed: () {
+                        if (phoneNumberFocus.hasFocus) {
+                          phoneNumberFocus.unfocus();
+                        }
+                      },
+                    )
+                    : SizedBox.shrink(),
+
                 SizedBox(height: 12.h),
-                _buildSocialButton('Continue with Apple', Icons.apple),
+
+                _buildSocialButton(
+                  text: 'Continue with Google',
+                  icon: Icons.g_translate,
+                  onPressed: () {
+                    if (phoneNumberFocus.hasFocus) {
+                      phoneNumberFocus.unfocus();
+                    }
+                  },
+                ),
                 SizedBox(height: 12.h),
-                _buildSocialButton('Continue with Google', Icons.gpp_maybe),
+
+                _buildSocialButton(
+                  text: 'Continue with Facebook',
+                  icon: Icons.facebook,
+                  iconColor: Colors.blue,
+                  onPressed: () {
+                    if (phoneNumberFocus.hasFocus) {
+                      phoneNumberFocus.unfocus();
+                    }
+                  },
+                ),
                 SizedBox(height: 12.h),
-                _buildSocialButton('Continue with Facebook', Icons.facebook),
-                SizedBox(height: 25.h),
+                _buildSocialButton(
+                  text: 'Continue with Email',
+                  icon: Icons.mail,
+                  onPressed: () {
+                    if (phoneNumberFocus.hasFocus) {
+                      phoneNumberFocus.unfocus();
+                    }
+                  },
+                ),
+                  SizedBox(height: 20.h),
               ],
             ),
           ),
@@ -262,22 +296,30 @@ class _LoginMainViewState extends State<LoginMainView> {
     );
   }
 
-  Widget _buildSocialButton(String text, IconData icon) {
+  Widget _buildSocialButton({
+    required String text,
+    required IconData icon,
+    Color? iconColor,
+    required VoidCallback onPressed,
+  }) {
     return OutlinedButton(
-      onPressed: () {
-        phoneNumberFocus.unfocus();
-      },
+      onPressed: onPressed,
       style: OutlinedButton.styleFrom(
         padding: EdgeInsets.symmetric(vertical: 13.h),
         side: const BorderSide(color: Colors.black87),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          Icon(icon, color: Colors.black54),
-          SizedBox(width: 8.w),
-          Text(text, style: TextStyle(color: Colors.black87)),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.w),
+              child: Icon(icon, color: iconColor ?? Colors.black45),
+            ),
+          ),
+          Center(child: Text(text, style: TextStyle(color: Colors.black87))),
         ],
       ),
     );

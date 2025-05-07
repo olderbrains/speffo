@@ -45,27 +45,27 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
     on<VerifyPhoneOTPEvent>((event, emit) async {
       emit(AuthLoading());
-
       try {
-        // Check for API key
         final msg91Key = dotenv.env['MSG91_KEY'];
         if (msg91Key == null || msg91Key.isEmpty) {
           emit(LoginAuthReject(message: "Missing MSG91 API key"));
           return;
         }
 
-        // Verify OTP
         final otpUri = Uri.parse(
           '${ApiURl.verifyOTPUrl}otp=${event.otp}&mobile=+91${event.phoneNumber}',
         );
 
-        final otpResponse = await http.get(
-          otpUri,
-          headers: {'authkey': msg91Key},
-        ).timeout(const Duration(seconds: 10));
+        final otpResponse = await http
+            .get(otpUri, headers: {'authkey': msg91Key});
 
         if (otpResponse.statusCode != 200) {
-          emit(LoginAuthReject(message: "OTP verification failed with status: ${otpResponse.statusCode}"));
+          emit(
+            LoginAuthReject(
+              message:
+                  "OTP verification failed with status: ${otpResponse.statusCode}",
+            ),
+          );
           return;
         }
 
@@ -75,27 +75,32 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           return;
         }
 
-        // Create Firebase User
-        final registerUri = Uri.parse(ApiURl.baseUrl + ApiURl.createFirebaseUser);
-        final registerResponse = await http.post(
-          registerUri,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({"phone": '+91${event.phoneNumber}'}),
-        ).timeout(const Duration(seconds: 10));
+        final registerUri = Uri.parse(
+          ApiURl.baseUrl + ApiURl.createFirebaseUser,
+        );
+        final registerResponse = await http
+            .post(
+              registerUri,
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode({"phone": '+91${event.phoneNumber}'}),
+            )
+            .timeout(const Duration(seconds: 10));
 
         if (registerResponse.statusCode != 200) {
           emit(LoginAuthReject(message: "Firebase registration failed"));
           return;
         }
 
-        final userData = UserRegisterModel.fromJson(jsonDecode(registerResponse.body));
+        final userData = UserRegisterModel.fromJson(
+          jsonDecode(registerResponse.body),
+        );
         if (userData.token.isEmpty) {
           emit(LoginAuthReject(message: "Received empty token"));
           return;
         }
 
-        // Sign in with Firebase
-        final userCredential = await FirebaseAuth.instance.signInWithCustomToken(userData.token);
+        final userCredential = await FirebaseAuth.instance
+            .signInWithCustomToken(userData.token);
 
         if (userCredential.user != null) {
           emit(LoginAuthSuccess());
