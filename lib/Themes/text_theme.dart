@@ -6,7 +6,7 @@ ThemeData globalTheme() {
     colorScheme: ColorScheme.light(primary: Color(0xff2fa85a)),
     fontFamily: 'Poppins',
     textTheme: const TextTheme(
-      displayLarge: TextStyle(fontWeight: FontWeight.w900),
+      displayLarge: TextStyle(fontWeight: FontWeight.w900,),
       displayMedium: TextStyle(fontWeight: FontWeight.w800),
       displaySmall: TextStyle(fontWeight: FontWeight.w700),
       headlineMedium: TextStyle(fontWeight: FontWeight.w600),

@@ -1,10 +1,8 @@
-import 'dart:io';
-
 import 'package:fl_country_code_picker/fl_country_code_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:speffo/Helper/api_url.dart';
 import 'package:speffo/Helper/indicator.dart';
 import 'package:speffo/Helper/page_router.dart';
 import 'package:speffo/Login/Controller/PhoneAuthentication/login_bloc.dart';
@@ -18,7 +16,8 @@ class LoginMainView extends StatefulWidget {
   State<LoginMainView> createState() => _LoginMainViewState();
 }
 
-class _LoginMainViewState extends State<LoginMainView> {
+class _LoginMainViewState extends State<LoginMainView>
+    with TickerProviderStateMixin {
   var phoneController = TextEditingController();
 
   var phoneNumberFocus = FocusNode();
@@ -26,12 +25,25 @@ class _LoginMainViewState extends State<LoginMainView> {
   final countryPicker = FlCountryCodePicker(favorites: ['+91', 'IN']);
 
   var countryListener = ValueNotifier("India (+91)");
+  ValueNotifier<bool> isFocused = ValueNotifier<bool>(false);
 
   CountryCode? countryCode;
 
   @override
+  void initState() {
+    super.initState();
+    phoneNumberFocus.addListener(_updateFocusState);
+  }
+
+  void _updateFocusState() {
+    isFocused.value = phoneNumberFocus.hasFocus;
+  }
+
+  @override
   void dispose() {
     super.dispose();
+    phoneNumberFocus.removeListener(_updateFocusState);
+    isFocused.dispose();
     phoneController.dispose();
     countryListener.dispose();
     phoneNumberFocus.dispose();
@@ -41,19 +53,7 @@ class _LoginMainViewState extends State<LoginMainView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        toolbarHeight: 50.h,
-        title: Text(
-          'Login or sign up',
-          style: TextStyle(
-            fontSize: 16.sp,
-            color: Colors.black,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
+      appBar: AppBar(elevation: 0, backgroundColor: Colors.white),
       body: BlocProvider(
         create: (context) => LoginBloc(),
         child: Padding(
@@ -65,17 +65,53 @@ class _LoginMainViewState extends State<LoginMainView> {
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 8.h),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Welcome to ', style: TextStyle(fontSize: 18.sp)),
                       Text(
-                        Constants.appName,
+                        'Continue with number',
                         style: TextStyle(
-                          fontSize: 18.sp,
+                          fontSize: 22.sp,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
+                  ),
+                ),
+                Row(
+                  children: [
+                    Text(
+                      'May your need, Wherever You Go',
+                      style: TextTheme.of(context).bodyMedium!.copyWith(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                Center(
+                  child: ValueListenableBuilder<bool>(
+                    valueListenable: isFocused,
+                    builder: (context, value, child) {
+                      return AnimatedSize(
+                        clipBehavior: Clip.none,
+                        duration: const Duration(milliseconds: 600),
+                        curve: Curves.easeInOut,
+                        child:
+                            value
+                                ? Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                                  child: Image.asset(
+                                    'assets/logo/logo.png',
+                                    fit: BoxFit.contain,
+                                    height: 70.h,
+                                  ),
+                                )
+                                : Image.asset(
+                                  'assets/media/loginHead.png',
+                                  fit: BoxFit.contain,
+                                  height: 250.h,
+                                ),
+                      );
+                    },
                   ),
                 ),
                 Container(
@@ -118,7 +154,7 @@ class _LoginMainViewState extends State<LoginMainView> {
                               ],
                             ),
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.start,
                               children: [
                                 ValueListenableBuilder(
                                   valueListenable: countryListener,
@@ -143,21 +179,15 @@ class _LoginMainViewState extends State<LoginMainView> {
                           controller: phoneController,
                           textInputAction: TextInputAction.done,
                           focusNode: phoneNumberFocus,
-                          validator: (value) {
-                            if (value!.length != 10) {
-                              return 'Phone Number not looking right!';
-                            }
-                            return null;
-                          },
+                          keyboardType: TextInputType.numberWithOptions(
+                            decimal: false,
+                            signed: false,
+                          ),
                           decoration: const InputDecoration(
                             contentPadding: EdgeInsets.zero,
                             border: InputBorder.none,
                             hintStyle: TextStyle(color: Colors.black54),
                             hintText: 'Phone Number',
-                          ),
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: false,
-                            signed: false,
                           ),
                         ),
                       ),
@@ -181,11 +211,30 @@ class _LoginMainViewState extends State<LoginMainView> {
                                 ? Indicators()
                                 : ElevatedButton(
                                   onPressed: () {
-                                    if (phoneValidateKey.currentState!
-                                        .validate()) {
-                                      if (phoneNumberFocus.hasFocus) {
-                                        phoneNumberFocus.unfocus();
-                                      }
+                                    if (phoneController.value.text.isEmpty) {
+                                      phoneNumberFocus.unfocus();
+                                      HapticFeedback.lightImpact();
+
+                                      FlashAlert.show(
+                                        message: "Phone number is required!",
+                                        type: FlashAlertType.error,
+                                      );
+                                    } else if (phoneController
+                                            .value
+                                            .text
+                                            .length !=
+                                        10) {
+                                      phoneNumberFocus.unfocus();
+                                      HapticFeedback.lightImpact();
+
+
+                                      FlashAlert.show(
+                                        message:
+                                            "Phone number not looking right!",
+                                        type: FlashAlertType.error,
+                                      );
+                                    } else {
+                                      phoneNumberFocus.unfocus();
 
                                       context.read<LoginBloc>().add(
                                         SendOTPEvent(
@@ -223,104 +272,11 @@ class _LoginMainViewState extends State<LoginMainView> {
                     },
                   ),
                 ),
-                SizedBox(height: 20.h),
-                const Row(
-                  children: [
-                    Expanded(child: Divider(thickness: 1.5)),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(
-                        'or',
-                        style: TextStyle(
-                          color: Colors.black54,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    Expanded(child: Divider(thickness: 1.5)),
-                  ],
-                ),
-                SizedBox(height: 20.h),
-
-                Platform.isAndroid
-                    ? _buildSocialButton(
-                      text: 'Continue with Apple',
-                      icon: Icons.apple,
-                      onPressed: () {
-                        if (phoneNumberFocus.hasFocus) {
-                          phoneNumberFocus.unfocus();
-                        }
-                      },
-                    )
-                    : SizedBox.shrink(),
-
-                SizedBox(height: 12.h),
-
-                _buildSocialButton(
-                  text: 'Continue with Google',
-                  icon: Icons.g_translate,
-                  onPressed: () {
-                    if (phoneNumberFocus.hasFocus) {
-                      phoneNumberFocus.unfocus();
-                    }
-                  },
-                ),
-                SizedBox(height: 12.h),
-
-                _buildSocialButton(
-                  text: 'Continue with Facebook',
-                  icon: Icons.facebook,
-                  iconColor: Colors.blue,
-                  onPressed: () {
-                    if (phoneNumberFocus.hasFocus) {
-                      phoneNumberFocus.unfocus();
-                    }
-                  },
-                ),
-                SizedBox(height: 12.h),
-                _buildSocialButton(
-                  text: 'Continue with Email',
-                  icon: Icons.mail,
-                  onPressed: () {
-                    if (phoneNumberFocus.hasFocus) {
-                      phoneNumberFocus.unfocus();
-                    }
-                  },
-                ),
-                  SizedBox(height: 20.h),
+                SizedBox(height: 25.h),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildSocialButton({
-    required String text,
-    required IconData icon,
-    Color? iconColor,
-    required VoidCallback onPressed,
-  }) {
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        padding: EdgeInsets.symmetric(vertical: 13.h),
-        side: const BorderSide(color: Colors.black87),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8.w),
-              child: Icon(icon, color: iconColor ?? Colors.black45),
-            ),
-          ),
-          Center(child: Text(text, style: TextStyle(color: Colors.black87))),
-        ],
       ),
     );
   }

@@ -60,7 +60,7 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _controller = AnimationController(vsync: this);
 
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(milliseconds: 2200), () {
       if (!mounted) return;
 
       context.read<AuthenticationBloc>().add(CheckUserState());
@@ -94,12 +94,10 @@ class _SplashScreenState extends State<SplashScreen>
               Padding(
                 padding: EdgeInsets.only(bottom: 8.h),
                 child: Text(
-                  "Home, Wherever You Go",
-                  style: TextStyle(
-                    color: Colors.blueGrey,
-
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.w700,
+                  'May your need, Wherever You Go',
+                  style: TextTheme.of(context).bodyMedium!.copyWith(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),

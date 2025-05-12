@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pinput/pinput.dart';
@@ -143,6 +144,8 @@ class _PhoneVerifyOtpScreenState extends State<PhoneVerifyOtpScreen> {
           if (state is LoginAuthSuccess) {
             PageRouter.pushRemoveUntil(context, NavHome());
           } else if (state is LoginAuthReject) {
+            HapticFeedback.lightImpact();
+
             FlashAlert.show(
               message: "Entered OTP is invalid or may expired",
               type: FlashAlertType.error,
