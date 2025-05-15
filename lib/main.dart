@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
         child: MaterialApp(
           builder: FlashyFlushbarProvider.init(),
           theme: globalTheme(),
-          home: const SplashScreen(),
+          home: const LoginMainView(),
         ),
       ),
     );
